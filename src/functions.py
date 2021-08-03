@@ -137,3 +137,33 @@ def count_sequence_4(*args):
         return True
     else:
         return False
+
+def get_last_result(df):
+    """Return las line of a given dataframe.
+       This last line  contains the most recent result of the lottery game.
+
+    Args:
+        df (DataFrame): Dataframe containing lottery results
+
+    Returns:
+        list: containing the results of the last contest
+    """
+
+    last_result = df.tail(1).reset_index(drop = True)
+    
+    return list(last_result.iloc[0,2:17])
+
+
+def generating_combinations(numbers_list, number_combinations):
+    """Return combinations of elements from a given list.
+
+    Args:
+        numbers_list (list): containing the results of the last contest
+        number_combinations (int): number of combinations in the list.
+    """
+    
+    combinations = list(itertools.combinations(numbers_list, number_combinations))
+    final_combinations = [x for x in combinations]
+    
+    return final_combinations
+
