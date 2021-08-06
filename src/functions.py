@@ -160,6 +160,9 @@ def generating_combinations(numbers_list, number_combinations):
     Args:
         numbers_list (list): containing the results of the last contest
         number_combinations (int): number of combinations in the list.
+    
+    Returns:
+        list: return a list
     """
     
     combinations = list(itertools.combinations(numbers_list, number_combinations))
@@ -189,3 +192,23 @@ def issubset_last_result(combinations_result,result,*args):
         if (set(elemen).issubset(random_list) == True) and (len(set(set(result).symmetric_difference(elemen)).intersection(random_list)) == 0):
             return True
     return False
+
+def identify_patters(line,*args):
+    """Count the number of times that numbers in a list appear in determinated sequence.
+       For example:
+       row1 = [1,2,3,4,5]
+       row2 = [6,7,8,9,10]
+       row3 = [11,12,13,14,15]
+       row4 = [16,17,18,19,20]
+       row5 = [21,22,23,24,25]
+       seq = [1,2,3,4,5,8,12]
+       The code will return a count of 5 for the first line 1 for the seccond line, 1 for the third line.
+       
+    Args:
+        line (list): count of times the numbers on the list to be evaluated in the sequence appeared.
+
+    Returns:
+        interger: numbers 
+    """
+
+    return len(set(args).intersection(line))
