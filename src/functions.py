@@ -12,9 +12,9 @@ def create_games():
         String: Conection for the database with all combinations of 15 numbers from 1 to 25 and the sum of this numbers
     """
  
-    numbers_list = [x for x in range(1,26)] #numeros possíveis de jogar. 1 a 25
+    numbers_list = [x for x in range(1,26)] 
 
-    all_games = list(itertools.combinations(numbers_list, 15)) #lista com todas as combinações possíveis
+    all_games = list(itertools.combinations(numbers_list, 15)) 
 
     df = pd.DataFrame(all_games,columns=['Bola1','Bola2','Bola3','Bola4','Bola5','Bola6','Bola7','Bola8','Bola9','Bola10','Bola11','Bola12','Bola13','Bola14','Bola15'])
 
@@ -112,7 +112,7 @@ def count_sequence_4(*args):
     Returns:
         Boolean: True if the list have in maximum 4 missing numbers in a sequential, otherwise False .
     """
-    
+
     index_list = []
     random_list = [arg for arg in args]
     diferences_list = []
@@ -167,3 +167,25 @@ def generating_combinations(numbers_list, number_combinations):
     
     return final_combinations
 
+def issubset_last_result(combinations_result,result,*args):
+    """Check if the (N) combinations from the most recent lottery result are framed in the combinations that will be evaluated.
+       For example:
+       Last Result = [3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]
+       C 15,8 = [3,4,5,6,7,8,9,10]
+       Evaluate_combination = [1,2,3,4,5,6,7,8,9,10,18,19,20,21,22]
+       
+       This analysis will return True because we have in maximum 8 numbers from C 15,8 in the evaluate combination. 
+
+    Args:
+        combinations_result (list): list of combinations of results taken by a user-defined number
+        result (list): list with the numbers of the last lottery won
+
+    Returns:
+        boolean : True if the combination of the last results match the analyzed combination otherwise False.
+    """
+
+    random_list = args
+    for elemen in combinations_result:
+        if (set(elemen).issubset(random_list) == True) and (len(set(set(result).symmetric_difference(elemen)).intersection(random_list)) == 0):
+            return True
+    return False
