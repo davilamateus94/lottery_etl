@@ -133,3 +133,4 @@ dmypy.json
 #others
 *.db
 *.csv
+/data/
