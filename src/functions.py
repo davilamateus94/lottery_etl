@@ -3,33 +3,42 @@ import itertools
 import requests
 from bs4 import BeautifulSoup
 from sqlalchemy import create_engine
+from pyspark.sql import SparkSession
+from pyspark.sql import functions as f
 
+def create_games(path):
+    """Create a DataFrame of all LotoFácil combinations games and save it in a parquet file.
 
-def create_games():
-    """Create a DataFrame of all combinations games of LotoFácil.
+    Args:
+        path (string): path where you desire to save the file.
 
     Returns:
-        String: Conection for the database with all combinations of 15 numbers from 1 to 25 and the sum of this numbers
+        string: Path where the parquet files were saved.
     """
- 
-    numbers_list = [x for x in range(1,26)] 
+    spark = SparkSession.builder \
+        .master("local[8]") \
+        .config('spark.executor.memory', '16g') \
+        .config('spark.driver.memory', '16g') \
+        .config("spark.driver.maxResultSize", "2048MB") \
+        .config("spark.port.maxRetries", "100") \
+        .appName("Learning_Spark") \
+        .getOrCreate()   
 
-    all_games = list(itertools.combinations(numbers_list, 15)) 
-
-    df = pd.DataFrame(all_games,columns=['Bola1','Bola2','Bola3','Bola4','Bola5','Bola6','Bola7','Bola8','Bola9','Bola10','Bola11','Bola12','Bola13','Bola14','Bola15'])
-
-    df['Soma'] = df.sum(axis=1)
-
-    path = "C://Users//davil//projects//lottery_etl//data//"
+    df_game = spark.createDataFrame(list(itertools.combinations([x for x in range(1,26)], 15)),  ['Bola1','Bola2','Bola3','Bola4','Bola5',
+                                                                                                  'Bola6','Bola7','Bola8','Bola9','Bola10',
+                                                                                                  'Bola11','Bola12','Bola13','Bola14','Bola15'])
     
-    disk_engine = create_engine(f'sqlite:///{path}all_games.db')
-    df.to_sql('all_games', disk_engine, if_exists='append') 
+    df_game = df_game.withColumn('Soma', sum(df_game[col] for col in df_game.columns))
     
-    con = "C://Users//davil//projects//lottery_etl//data//all_games.db"
-    
-    return con
+    df_game = df_game.withColumn('Bolas_Array', f.array('Bola1','Bola2','Bola3','Bola4','Bola5',
+                                                        'Bola6','Bola7','Bola8','Bola9','Bola10',
+                                                        'Bola11','Bola12','Bola13','Bola14','Bola15'))
+       
+    df_game.write.parquet(path + "all_games", mode="overwrite")
+       
+    return path + "all_games"
 
-def get_lottery_results():
+def get_lottery_results(path):
     """Get the numbers from won contests .
 
     Returns:
@@ -49,22 +58,47 @@ def get_lottery_results():
                      'Bola6', 'Bola7', 'Bola8', 'Bola9', 'Bola10', 'Bola11', 'Bola12',
                      'Bola13', 'Bola14', 'Bola15']].sum(axis = 1)
    
-    path = "C://Users//davil//projects//lottery_etl//data//"
-
-    df.to_csv(path+'result_games.csv',index = False) 
+    
+    df.to_csv(path +'result_games.csv',index = False) 
         
-    return path+'result_games.csv'
- 
+    return path +'result_games.csv'
 
-def count_odds_test(*args):
+   
+def count_odds(list_numbers):
     """Count the odds numbers in a list of integers.
+
+    Args:
+        list_numbers (array): Array in a DataFrame with contains the number witch you desire to count the odds.
 
     Returns:
         Integer: Count of the odds numbers in a numbers list.
     """
-    list_numbers = [arg for arg in args]
+
     odd_count = len(list(filter(lambda x: (x%2 != 0) , list_numbers)))
     return odd_count 
+
+def return_parquet_odds(path,df,array_column):
+    """Create a parquet file with a column where indicate the count of odd numbers in determinated vector.
+
+    Args:
+        path (str): path where you desire to save the file.
+        df (dataframe): data with you want to evaluate
+        array_column (dataframe column): column with the vectors that you desired to count the odds.
+
+    Returns:
+        string: path where the parquet files were saved.
+    """
+
+    count_odds_udf = f.udf(lambda x: count_odds(x)) 
+    
+    df = df.withColumn('impares', count_odds_udf(f.col(array_column)))
+    
+    path = path
+    
+    df.write.parquet(path + "with_odds", mode="overwrite")
+    
+    return path + "with_odds" 
+
 
 def count_sequence_6(*args):
     """Checks if determinated list have in maximum 6 numbers in sequence.
