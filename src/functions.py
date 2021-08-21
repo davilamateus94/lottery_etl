@@ -27,7 +27,7 @@ def create_games(path):
     df_game = spark.createDataFrame(list(itertools.combinations([x for x in range(1,26)], 15)),  ['Bola1','Bola2','Bola3','Bola4','Bola5',
                                                                                                   'Bola6','Bola7','Bola8','Bola9','Bola10',
                                                                                                   'Bola11','Bola12','Bola13','Bola14','Bola15'])
-    
+        
     df_game = df_game.withColumn('Soma', sum(df_game[col] for col in df_game.columns))
     
     df_game = df_game.withColumn('Bolas_Array', f.array('Bola1','Bola2','Bola3','Bola4','Bola5',
@@ -92,9 +92,7 @@ def return_parquet_odds(path,df,array_column):
     count_odds_udf = f.udf(lambda x: count_odds(x)) 
     
     df = df.withColumn('impares', count_odds_udf(f.col(array_column)))
-    
-    path = path
-    
+  
     df.write.parquet(path + "with_odds", mode="overwrite")
     
     return path + "with_odds" 
@@ -246,3 +244,4 @@ def identify_patters(line,*args):
     """
 
     return len(set(args).intersection(line))
+
