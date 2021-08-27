@@ -133,4 +133,6 @@ dmypy.json
 #others
 *.db
 *.csv
+*.parquet
+*.parquet.crc
 /data/
